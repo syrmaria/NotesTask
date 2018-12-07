@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 
 public class DBHelper extends SQLiteOpenHelper {
     private static final String TAG = "DBHelper";
@@ -22,7 +24,6 @@ public class DBHelper extends SQLiteOpenHelper {
     DBHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
-
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -39,7 +40,9 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_CONTENT, note.getContent());
         long id = 0;
         try {
-            id = getWritableDatabase().insert(TABLE_NOTE, null, cv);
+            SQLiteDatabase database = getWritableDatabase();
+            id = database.insert(TABLE_NOTE, null, cv);
+            database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to insert note");
         }
@@ -51,8 +54,10 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_TITLE, note.getTitle());
         cv.put(COLUMN_CONTENT, note.getContent());
         try {
-            getWritableDatabase().update(TABLE_NOTE, cv,
+            SQLiteDatabase database = getWritableDatabase();
+            database.update(TABLE_NOTE, cv,
                     COLUMN_ID + "= ?", new String[]{String.valueOf(note.getId())});
+            database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to update note");
         }
@@ -60,22 +65,36 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void deleteNote(long noteId) {
         try {
-            getWritableDatabase().delete(TABLE_NOTE, COLUMN_ID + "= ?",
+            SQLiteDatabase database = getWritableDatabase();
+            database.delete(TABLE_NOTE, COLUMN_ID + "= ?",
                     new String[]{String.valueOf(noteId)});
+            database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to delete note");
         }
     }
 
-    public NoteCursor queryNotes() {
+    public ArrayList<Note> queryNotes() {
+        ArrayList<Note> notes = null;
+        Cursor cursor = null;
         try {
-            Cursor cursor = getReadableDatabase().query(TABLE_NOTE, null, null,
-                    null, null, null, null);
-            return new NoteCursor(cursor);
-        } catch (SQLException e) {
+            SQLiteDatabase database = getReadableDatabase();
+            cursor = database.query(TABLE_NOTE, null, null,null, null, null, null);
+            if (cursor == null) return null;
+            NoteCursor noteCursor = new NoteCursor(cursor);
+            notes = new ArrayList<>();
+            while (noteCursor.moveToNext()) {
+                notes.add(noteCursor.getNote());
+            }
+            database.close();
+        } catch (Exception e) {
             Log.e(TAG, "Not able to query notes");
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
-        return null;
+        return notes;
     }
 
     public static class NoteCursor extends CursorWrapper {

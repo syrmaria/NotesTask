@@ -37,7 +37,7 @@ public class AddNoteActivity extends AppCompatActivity {
         mNote = new Note();
         mNote.setTitle(mTitleEditText.getText().toString());
         mNote.setContent(mContentEditText.getText().toString());
-        long id = NoteManager.getInstance(this).createNote(mNote);
+        long id = ((MyApplication)getApplication()).getDBHelper().insertNote(mNote);
         if (id == 0) {
             Toast.makeText(this, "Error! Note not saved", Toast.LENGTH_LONG).show();
         } else {

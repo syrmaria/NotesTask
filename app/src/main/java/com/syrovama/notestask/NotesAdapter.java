@@ -13,7 +13,7 @@ import java.util.ArrayList;
 class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.Holder> {
     private static final String TAG = "MyAdapter";
     private ArrayList<Note> mNotes;
-    private static ClickListener mClickListener;
+    private ClickListener mClickListener;
 
     public interface ClickListener {
         void onItemClick(int position, View v);
@@ -45,7 +45,7 @@ class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.Holder> {
     }
 
 
-    public static class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final TextView mTitleTextView;
         private final TextView mContentTextView;
 

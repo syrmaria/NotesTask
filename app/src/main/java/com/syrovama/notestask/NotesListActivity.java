@@ -30,12 +30,16 @@ public class NotesListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes_list);
+        initRecycler();
+    }
 
+    private void initRecycler() {
+        Log.d(TAG, "initRecycler");
         RecyclerView recyclerView = findViewById(R.id.notes_recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        mNotes = NoteManager.getInstance(this).getNotes();
+        mNotes = ((MyApplication)getApplication()).getDBHelper().queryNotes();
         mAdapter = new NotesAdapter(mNotes);
         mAdapter.setOnItemClickListener(new NotesAdapter.ClickListener() {
             @Override
@@ -65,29 +69,17 @@ public class NotesListActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        NoteManager.getInstance(this).closeDBConnection();
-        Log.d(TAG, "DB closed");
-        super.onDestroy();
-    }
-
     private void openNote(int position) {
         Log.d(TAG, "openNote called");
         mSelectedPosition = position;
         Note note = mNotes.get(position);
-        Intent intent = new Intent(this, UpdateNoteActivity.class);
-        intent.putExtra(EXTRA_ID, note.getId());
-        intent.putExtra(EXTRA_TITLE, note.getTitle());
-        intent.putExtra(EXTRA_CONTENT, note.getContent());
-        startActivityForResult(intent, REQUEST_OPEN);
+        startActivityForResult(getUpdateNoteIntent(note), REQUEST_OPEN);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data == null) return;
-        if (resultCode != RESULT_OK) return;
+        if (data == null || resultCode != RESULT_OK) return;
         if (requestCode == REQUEST_OPEN) {
             if (data.getBooleanExtra(EXTRA_DELETED, false)) {
                 mNotes.remove(mSelectedPosition);
@@ -101,6 +93,14 @@ public class NotesListActivity extends AppCompatActivity {
             Log.d(TAG, "Note added");
         }
         mAdapter.notifyDataSetChanged();
+    }
+
+    public Intent getUpdateNoteIntent(Note note) {
+        Intent intent = new Intent(this, UpdateNoteActivity.class);
+        intent.putExtra(EXTRA_ID, note.getId());
+        intent.putExtra(EXTRA_TITLE, note.getTitle());
+        intent.putExtra(EXTRA_CONTENT, note.getContent());
+        return intent;
     }
 
     private Note getNoteFromIntent(Intent intent) {

@@ -21,7 +21,11 @@ public class UpdateNoteActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_note);
+        initViews();
+        parseIntent();
+    }
 
+    private void initViews() {
         mTitleEditText = findViewById(R.id.title_edit_view);
         mContentEditText = findViewById(R.id.content_edit_view);
         Button updateButton = findViewById(R.id.update_button);
@@ -38,6 +42,9 @@ public class UpdateNoteActivity extends AppCompatActivity {
                 deleteNote();
             }
         });
+    }
+
+    private void parseIntent() {
         Intent data = getIntent();
         mNote.setId(data.getLongExtra(EXTRA_ID, 0));
         mTitleEditText.setText(data.getStringExtra(EXTRA_TITLE));
@@ -47,12 +54,12 @@ public class UpdateNoteActivity extends AppCompatActivity {
     private void updateNote() {
         mNote.setTitle(mTitleEditText.getText().toString());
         mNote.setContent(mContentEditText.getText().toString());
-        NoteManager.getInstance(this).updateNote(mNote);
+        ((MyApplication)getApplication()).getDBHelper().updateNote(mNote);
         returnResult(false);
     }
 
     private void deleteNote() {
-        NoteManager.getInstance(this).deleteNote(mNote.getId());
+        ((MyApplication)getApplication()).getDBHelper().deleteNote(mNote.getId());
         returnResult(true);
     }
 
