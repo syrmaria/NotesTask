@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
@@ -20,6 +21,8 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String COLUMN_TITLE = "title";
     private static final String COLUMN_CONTENT = "content";
     private static final String COLUMN_ID = "_id";
+
+    private SQLiteDatabase database;
 
     DBHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
@@ -40,8 +43,9 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_CONTENT, note.getContent());
         long id = 0;
         try {
-            SQLiteDatabase database = getWritableDatabase();
+            database = getWritableDatabase();
             id = database.insert(TABLE_NOTE, null, cv);
+            Log.d(TAG, "Note inserted");
             database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to insert note");
@@ -54,9 +58,10 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_TITLE, note.getTitle());
         cv.put(COLUMN_CONTENT, note.getContent());
         try {
-            SQLiteDatabase database = getWritableDatabase();
+            database = getWritableDatabase();
             database.update(TABLE_NOTE, cv,
                     COLUMN_ID + "= ?", new String[]{String.valueOf(note.getId())});
+            Log.d(TAG, "Note updated");
             database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to update note");
@@ -65,34 +70,47 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void deleteNote(long noteId) {
         try {
-            SQLiteDatabase database = getWritableDatabase();
+            database = getWritableDatabase();
             database.delete(TABLE_NOTE, COLUMN_ID + "= ?",
                     new String[]{String.valueOf(noteId)});
+            Log.d(TAG, "Note deleted");
             database.close();
         } catch (SQLException e) {
             Log.e(TAG, "Not able to delete note");
         }
     }
 
-    public ArrayList<Note> queryNotes() {
-        ArrayList<Note> notes = null;
+    public Cursor queryNotes() {
         Cursor cursor = null;
         try {
-            SQLiteDatabase database = getReadableDatabase();
+            database = getReadableDatabase();
             cursor = database.query(TABLE_NOTE, null, null,null, null, null, null);
+            Log.d(TAG, "Notes queried");
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Not able to query notes");
+        }
+        return cursor;
+    }
+
+    public ArrayList<Note> getNotes() {
+        ArrayList<Note> notes = null;
+        Cursor cursor = null;
+        try{
+            cursor = queryNotes();
             if (cursor == null) return null;
             NoteCursor noteCursor = new NoteCursor(cursor);
             notes = new ArrayList<>();
             while (noteCursor.moveToNext()) {
                 notes.add(noteCursor.getNote());
             }
-            database.close();
-        } catch (Exception e) {
-            Log.e(TAG, "Not able to query notes");
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Not able to parse notes");
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
+            database.close();
         }
         return notes;
     }

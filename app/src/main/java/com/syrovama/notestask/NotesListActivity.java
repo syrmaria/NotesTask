@@ -39,7 +39,7 @@ public class NotesListActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        mNotes = ((MyApplication)getApplication()).getDBHelper().queryNotes();
+        mNotes = ((MyApplication)getApplication()).getDBHelper().getNotes();
         mAdapter = new NotesAdapter(mNotes);
         mAdapter.setOnItemClickListener(new NotesAdapter.ClickListener() {
             @Override

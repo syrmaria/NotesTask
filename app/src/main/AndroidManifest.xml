@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.syrovama.notestask">
 
+    <permission android:name="com.syrovama.notestask.READ_NOTE" android:protectionLevel="normal"/>
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -19,6 +21,12 @@
         </activity>
         <activity android:name=".AddNoteActivity"/>
         <activity android:name=".UpdateNoteActivity"/>
+        <provider
+            android:authorities="com.syrovama.notestask"
+            android:name=".NoteProvider"
+            android:permission="com.syrovama.notestask.READ_NOTE"
+            android:exported="true">
+        </provider>
     </application>
 
 </manifest>
