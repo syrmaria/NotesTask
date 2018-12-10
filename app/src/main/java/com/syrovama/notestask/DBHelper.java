@@ -18,9 +18,9 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "notes.sqlite";
     private static final int VERSION = 1;
     private static final String TABLE_NOTE = "note";
-    private static final String COLUMN_TITLE = "title";
-    private static final String COLUMN_CONTENT = "content";
-    private static final String COLUMN_ID = "_id";
+    static final String COLUMN_TITLE = "title";
+    static final String COLUMN_CONTENT = "content";
+    static final String COLUMN_ID = "_id";
 
     private SQLiteDatabase database;
 
@@ -41,10 +41,14 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_TITLE, note.getTitle());
         cv.put(COLUMN_CONTENT, note.getContent());
+        return insert(cv);
+    }
+
+    public long insert(ContentValues contentValues) {
         long id = 0;
         try {
             database = getWritableDatabase();
-            id = database.insert(TABLE_NOTE, null, cv);
+            id = database.insert(TABLE_NOTE, null, contentValues);
             Log.d(TAG, "Note inserted");
             database.close();
         } catch (SQLException e) {
@@ -57,10 +61,15 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_TITLE, note.getTitle());
         cv.put(COLUMN_CONTENT, note.getContent());
+        long id = note.getId();
+        update(id, cv);
+    }
+
+    public void update(long id, ContentValues contentValues) {
         try {
             database = getWritableDatabase();
-            database.update(TABLE_NOTE, cv,
-                    COLUMN_ID + "= ?", new String[]{String.valueOf(note.getId())});
+            database.update(TABLE_NOTE, contentValues,
+                    COLUMN_ID + "= ?", new String[]{String.valueOf(id)});
             Log.d(TAG, "Note updated");
             database.close();
         } catch (SQLException e) {
